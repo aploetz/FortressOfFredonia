@@ -46,7 +46,12 @@ public class TileManager {
 		}
 		
 		loadTileImages();
-		generateDungeon();
+		//generateDungeon();
+		loadDungeonMap();
+	}
+	
+	private void loadDungeonMap() {
+		
 	}
 	
 	private void generateDungeon() {
