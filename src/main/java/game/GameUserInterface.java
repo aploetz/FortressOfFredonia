@@ -66,6 +66,7 @@ public class GameUserInterface {
 		int textX = getXForCenteredText(text);
 		int textY = gp.getScreenHeight() / 2;
 		
+		g2.setColor(Color.WHITE);
 		g2.drawString(text, textX, textY);	
 	}
 	

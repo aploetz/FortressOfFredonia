@@ -7,6 +7,9 @@ import java.awt.Graphics2D;
 
 import javax.swing.JPanel;
 
+import characters.Player;
+import objects.LevelMap;
+
 
 public class GamePanel extends JPanel implements Runnable {
 
@@ -18,23 +21,27 @@ public class GamePanel extends JPanel implements Runnable {
 	final int viewSize = tileSize * 8;
 	final int maxScreenCol = 20;
 	final int maxScreenRow = 12;
-	final int mapScreenCol = 10;
-	final int mapScreenRow = 1;
+	final int mapScreenCol = 12;
+	final int mapScreenRow = 0;
 	final int screenWidth = tileSize * maxScreenCol; // 768x
 	final int screenHeight = tileSize * maxScreenRow; // 576
 	
 	// world map settings
 	final int maxWorldCol = 8;
 	final int maxWorldRow = 8;
+	LevelMap map = new LevelMap();
 	
 	// frames per second
 	final int fPS = 60;
 	
 	// Game engine
-	private TileManager tileMgr = new TileManager(this);
+	private TileManager tileMgr;
 	private Thread gameThread;
 	KeyHandler keyHandler = new KeyHandler(this);
 	GameUserInterface gameUI = new GameUserInterface(this);
+	
+	// characters and objects
+	Player player = new Player(this, keyHandler);
 	
 	// Game state & related constants
 	private int gameState;
@@ -51,6 +58,24 @@ public class GamePanel extends JPanel implements Runnable {
 		this.setDoubleBuffered(true);
 		this.addKeyListener(keyHandler);
 		this.setFocusable(true);
+		
+		// prepare level map
+		map.setFileName("level1map.txt");
+		map.setStartX(0);
+		map.setStartY(6);
+		map.setFinishX(7);
+		map.setFinishY(7);
+		map.setStartDirection("right");
+		
+		// Player
+		player.setDirection(map.getStartDirection());
+		player.setMapX((map.getStartX() * tileSize) + (mapScreenCol * tileSize));
+		player.setMapY((map.getStartY() * tileSize) + (mapScreenRow * tileSize));
+		
+		// invoke TileManager
+		this.tileMgr = new TileManager(this, map);
+		
+		// create 
 	}
 
 	public void setupGame() {
@@ -98,9 +123,9 @@ public class GamePanel extends JPanel implements Runnable {
 	private void update() {
 		
 		if (gameState == PLAY_STATE) {
-//			
-//			player.update();
-//			
+			
+			player.update();
+			
 //			for (Entity npc : npcs) {
 //				if (npc != null) {
 //					npc.update();
@@ -139,8 +164,11 @@ public class GamePanel extends JPanel implements Runnable {
 	    	// title screen 
 	    	gameUI.draw(g2);
 	    } else {
-	    	// draw map - really only need to do this once...optimize later
+	    	// draw map
 	    	tileMgr.drawMap(g2);
+	    	
+	    	// draw player on map
+	    	player.draw(g2);
 	    }
 		
 	    g2.dispose();

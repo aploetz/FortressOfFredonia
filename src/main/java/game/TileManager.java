@@ -1,16 +1,28 @@
 package game;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
+
+import objects.LevelMap;
 
 public class TileManager {
 
 	private MapTile[] mapTiles;
 	private Tile[] viewTiles;
+
+	private final int DIRECTION_UP = 0;
+	private final int DIRECTION_RIGHT = 1;
+	private final int DIRECTION_DOWN = 2;
+	private final int DIRECTION_LEFT = 3;
 
 	private int tileSize;
 	private int viewSize;
@@ -18,16 +30,14 @@ public class TileManager {
 	private int maxMapCol;
 	private int startMapX;
 	private int startMapY;
-	
-	private final int DIRECTION_UP = 0;
-	private final int DIRECTION_RIGHT = 1;
-	private final int DIRECTION_DOWN = 2;
-	private final int DIRECTION_LEFT = 3;
-	
+		
 	private int mapTileCodes[][];
 	
-	public TileManager(GamePanel gp) {
+	private LevelMap map;
+	
+	public TileManager(GamePanel gp, LevelMap map) {
 		
+		this.map = map;
 		tileSize = gp.getTileSize();
 		viewSize = gp.getViewSize();
 		maxMapRow = gp.getMaxWorldRow();
@@ -47,11 +57,43 @@ public class TileManager {
 		
 		loadTileImages();
 		//generateDungeon();
-		loadDungeonMap();
+		loadDungeonMap(this.map.getFileName());
 	}
 	
-	private void loadDungeonMap() {
+	private void loadDungeonMap(String mapFile) {
 		
+		try {
+			
+			InputStream inputStream = getClass().getResourceAsStream("/maps/" + mapFile);
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+			
+			int intX = 0;
+			int intY = 0;
+			
+			while (intX < maxMapCol && intY < maxMapRow) {
+				
+				String inputLine = br.readLine();
+				
+				while (intX < maxMapCol) {
+					String tileCodes[] = inputLine.split(" ");
+					
+					int tileCode = Integer.parseInt(tileCodes[intX]);
+					mapTileCodes[intX][intY] = tileCode;
+					intX++;
+				}
+				
+				if (intX >= maxMapCol) {
+					intX = 0;
+					intY++;
+				}
+			}
+			
+			br.close();
+			
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 	
 	private void generateDungeon() {
@@ -204,7 +246,19 @@ public class TileManager {
 				int tileNum = mapTileCodes[counterX][counterY];
 				g2.drawImage(mapTiles[tileNum].getImage(), screenX, screenY, null);
 			}
-		}
+		}		
+
+		// draw a box around the map
+		drawBox(g2, startMapX, startMapY, tileSize * 8, tileSize * 8);
+
+	}
+	
+	private void drawBox(Graphics2D g2, int boxX, int boxY, int boxWidth, int boxHeight) {
+
+		Color c = new Color(255, 255, 255);
+		g2.setColor(c);
+		g2.setStroke(new BasicStroke(5)); // pixel width
+		g2.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 25, 25);
 	}
 	
 	public int[][] getMapTileCodes() {
